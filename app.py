@@ -1,15 +1,18 @@
+import psycopg2
+import os
 from flask import Flask, request, jsonify
-import sqlite3
 
 app = Flask(__name__)
 
-# Set up the database (if not already set)
+def get_connection():
+    return psycopg2.connect(os.environ.get("DATABASE_URL"))
+
 def init_db():
-    conn = sqlite3.connect('leaderboard.db')
+    conn = get_connection()
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS scores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
             score INTEGER NOT NULL,
             date TEXT NOT NULL
@@ -20,7 +23,6 @@ def init_db():
 
 init_db()
 
-# Route to submit a new score
 @app.route('/submit-score', methods=['POST'])
 def submit_score():
     data = request.get_json()
@@ -28,18 +30,17 @@ def submit_score():
     score = data['score']
     date = data['date']
 
-    conn = sqlite3.connect('leaderboard.db')
+    conn = get_connection()
     c = conn.cursor()
-    c.execute('INSERT INTO scores (name, score, date) VALUES (?, ?, ?)', (name, score, date))
+    c.execute('INSERT INTO scores (name, score, date) VALUES (%s, %s, %s)', (name, score, date))
     conn.commit()
     conn.close()
 
     return jsonify({'message': 'Score submitted successfully'}), 201
 
-# Route to get the top scores
 @app.route('/get-leaderboard', methods=['GET'])
 def get_leaderboard():
-    conn = sqlite3.connect('leaderboard.db')
+    conn = get_connection()
     c = conn.cursor()
     c.execute('SELECT name, score, date FROM scores ORDER BY score DESC LIMIT 5')
     scores = c.fetchall()
@@ -54,6 +55,10 @@ def get_leaderboard():
         })
 
     return jsonify(leaderboard)
+
+@app.route('/')
+def home():
+    return "Leaderboard Server is running!"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
