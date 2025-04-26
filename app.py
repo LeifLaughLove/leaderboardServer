@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 def get_connection():
-    return psycopg2.connect(os.environ.get("postgresql://leaderboard_db_55ut_user:FlEG9AHWe6Nutq0bZZAqSsWXJlxJ0BzC@dpg-d05vvkuuk2gs73ce9sig-a.oregon-postgres.render.com/leaderboard_db_55ut"))
+    return psycopg2.connect(os.environ.get("DATABASE_URL"))
 
 def init_db():
     conn = get_connection()
