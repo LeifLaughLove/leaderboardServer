@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 def get_connection():
-    return psycopg2.connect(os.environ.get("DATABASE_URL"))
+    return psycopg2.connect(os.environ.get("https://leaderboardserver.onrender.com"))
 
 def init_db():
     conn = get_connection()
